@@ -31,12 +31,12 @@ The project empowers citizens and authorities alike to ensure better water conse
 
 - **Frontend**: React.js, Tailwind CSS
 - **Backend**: Node.js, Express.js
-- **Database**: MongoDB Atlas (Cloud-hosted)
+- **Database**: Supabase (PostgreSQL)
 - **Authentication**: JWT (JSON Web Tokens)
 - **APIs Used**:
   - OpenWeatherMap API (Weather and flood data)
   - Leaflet.js (Mapping)
-- **Cloud Deployment**: Render / Railway (or any preferred hosting service)
+- **Cloud Deployment**: Vercel (or any preferred hosting service)
 
 ---
 
@@ -44,8 +44,8 @@ The project empowers citizens and authorities alike to ensure better water conse
 
 ### Prerequisites
 - Node.js and npm installed
-- MongoDB Atlas account (or local MongoDB setup)
-- API keys for OpenWeatherMap
+- Supabase (or local MongoDB setup)
+- API keys for OpenWeatherMap and Gemini
 
 ### Steps
 
