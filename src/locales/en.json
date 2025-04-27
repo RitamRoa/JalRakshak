@@ -1,0 +1,95 @@
+{
+  "appName": "Community Water Watch",
+  "home": {
+    "title": "Community Water Watch",
+    "subtitle": "Empowering communities to solve water issues together",
+    "reportButton": "Report Water Issue",
+    "emergencyContacts": "Emergency Contacts",
+    "govtSchemes": "Government Schemes",
+    "notices": "Notices & Announcements"
+  },
+  "report": {
+    "title": "Report a Water Issue",
+    "locationLabel": "Location",
+    "issueTypeLabel": "Issue Type",
+    "issueTypes": {
+      "leak": "Water Leak",
+      "flood": "Flooding",
+      "contamination": "Contamination",
+      "shortage": "Water Shortage",
+      "other": "Other Issue"
+    },
+    "descriptionLabel": "Description",
+    "descriptionPlaceholder": "Please provide details about the issue...",
+    "severityLabel": "Severity",
+    "severityLevels": {
+      "low": "Low",
+      "medium": "Medium",
+      "high": "High",
+      "critical": "Critical"
+    },
+    "submitButton": "Submit Report",
+    "successMessage": "Report submitted successfully!"
+  },
+  "map": {
+    "title": "Water Issues Map",
+    "layers": {
+      "issues": "Water Issues",
+      "authorities": "Authorities",
+      "reservoirs": "Groundwater Reservoirs",
+      "weather": "Weather"
+    },
+    "legend": {
+      "leak": "Water Leak",
+      "flood": "Flooding",
+      "contamination": "Contamination",
+      "shortage": "Water Shortage",
+      "other": "Other Issue",
+      "authority": "Authority",
+      "reservoir": "Groundwater Reservoir"
+    }
+  },
+  "actionPlan": {
+    "title": "Your Water Safety Plan",
+    "searchPlaceholder": "Search for water safety advice...",
+    "tipCategories": {
+      "emergency": "Emergency Response",
+      "conservation": "Water Conservation",
+      "quality": "Water Quality"
+    },
+    "safetyScore": "Water Safety Score"
+  },
+  "admin": {
+    "title": "Admin Dashboard",
+    "login": "Admin Login",
+    "reports": "Water Issue Reports",
+    "analytics": "Analytics",
+    "notifications": "Send Notifications",
+    "statuses": {
+      "pending": "Pending",
+      "inProgress": "In Progress",
+      "resolved": "Resolved",
+      "urgent": "Urgent"
+    }
+  },
+  "nav": {
+    "home": "Home",
+    "report": "Report Issue",
+    "map": "Map",
+    "actionPlan": "Action Plan",
+    "admin": "Admin",
+    "myReports": "My Reports",
+    "profile": "Profile"
+  },
+  "common": {
+    "loading": "Loading...",
+    "error": "An error occurred",
+    "retry": "Retry",
+    "cancel": "Cancel",
+    "save": "Save",
+    "delete": "Delete",
+    "edit": "Edit",
+    "view": "View",
+    "search": "Search"
+  }
+}

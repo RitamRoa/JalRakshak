@@ -1,0 +1,95 @@
+{
+  "appName": "सामुदायिक जल निगरानी",
+  "home": {
+    "title": "सामुदायिक जल निगरानी",
+    "subtitle": "जल समस्याओं को एक साथ हल करने के लिए समुदायों को सशक्त बनाना",
+    "reportButton": "जल समस्या की रिपोर्ट करें",
+    "emergencyContacts": "आपातकालीन संपर्क",
+    "govtSchemes": "सरकारी योजनाएँ",
+    "notices": "सूचनाएँ और घोषणाएँ"
+  },
+  "report": {
+    "title": "जल समस्या की रिपोर्ट करें",
+    "locationLabel": "स्थान",
+    "issueTypeLabel": "समस्या का प्रकार",
+    "issueTypes": {
+      "leak": "जल रिसाव",
+      "flood": "बाढ़",
+      "contamination": "प्रदूषण",
+      "shortage": "जल की कमी",
+      "other": "अन्य समस्या"
+    },
+    "descriptionLabel": "विवरण",
+    "descriptionPlaceholder": "कृपया समस्या के बारे में विवरण प्रदान करें...",
+    "severityLabel": "गंभीरता",
+    "severityLevels": {
+      "low": "कम",
+      "medium": "मध्यम",
+      "high": "उच्च",
+      "critical": "अत्यंत गंभीर"
+    },
+    "submitButton": "रिपोर्ट जमा करें",
+    "successMessage": "रिपोर्ट सफलतापूर्वक जमा की गई!"
+  },
+  "map": {
+    "title": "जल समस्या मानचित्र",
+    "layers": {
+      "issues": "जल समस्याएँ",
+      "authorities": "अधिकारी",
+      "reservoirs": "भूजल जलाशय",
+      "weather": "मौसम"
+    },
+    "legend": {
+      "leak": "जल रिसाव",
+      "flood": "बाढ़",
+      "contamination": "प्रदूषण",
+      "shortage": "जल की कमी",
+      "other": "अन्य समस्या",
+      "authority": "अधिकारी",
+      "reservoir": "भूजल जलाशय"
+    }
+  },
+  "actionPlan": {
+    "title": "आपकी जल सुरक्षा योजना",
+    "searchPlaceholder": "जल सुरक्षा सलाह खोजें...",
+    "tipCategories": {
+      "emergency": "आपातकालीन प्रतिक्रिया",
+      "conservation": "जल संरक्षण",
+      "quality": "जल गुणवत्ता"
+    },
+    "safetyScore": "जल सुरक्षा स्कोर"
+  },
+  "admin": {
+    "title": "प्रशासन डैशबोर्ड",
+    "login": "प्रशासन लॉगिन",
+    "reports": "जल समस्या रिपोर्ट",
+    "analytics": "विश्लेषण",
+    "notifications": "सूचनाएँ भेजें",
+    "statuses": {
+      "pending": "लंबित",
+      "inProgress": "प्रगति पर",
+      "resolved": "हल किया गया",
+      "urgent": "अत्यावश्यक"
+    }
+  },
+  "nav": {
+    "home": "होम",
+    "report": "समस्या रिपोर्ट",
+    "map": "मानचित्र",
+    "actionPlan": "कार्य योजना",
+    "admin": "प्रशासन",
+    "myReports": "मेरी रिपोर्ट",
+    "profile": "प्रोफ़ाइल"
+  },
+  "common": {
+    "loading": "लोड हो रहा है...",
+    "error": "एक त्रुटि हुई",
+    "retry": "पुनः प्रयास करें",
+    "cancel": "रद्द करें",
+    "save": "सहेजें",
+    "delete": "हटाएं",
+    "edit": "संपादित करें",
+    "view": "देखें",
+    "search": "खोज"
+  }
+}
