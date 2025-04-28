@@ -73,7 +73,7 @@ The project empowers citizens and authorities alike to ensure better water conse
    npm run dev
    ```
 
-5. The application will be running at `http://localhost:3000`.
+5. The application will be running at `http://localhost:5130/1/2/3/4/5`.
 
 ---
 
