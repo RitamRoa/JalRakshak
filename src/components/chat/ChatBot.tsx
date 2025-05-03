@@ -25,6 +25,10 @@ interface WaterIssue {
   issue_type: string;
 }
 
+interface ChatBotProps {
+  initialQuery?: string;
+}
+
 const DEFAULT_QUICK_ACTIONS: QuickAction[] = [
   {
     id: 'report-issue',
@@ -57,7 +61,7 @@ Your role is to help users report water problems, provide information about wate
 and offer guidance on water conservation. Always prioritize user safety and direct them 
 to emergency services when appropriate.`;
 
-const ChatBot: React.FC = () => {
+const ChatBot: React.FC<ChatBotProps> = ({ initialQuery }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [isMinimized, setIsMinimized] = useState(false);
   const [messages, setMessages] = useState<Message[]>([]);
@@ -68,6 +72,14 @@ const ChatBot: React.FC = () => {
   const [quickActions, setQuickActions] = useState<QuickAction[]>(DEFAULT_QUICK_ACTIONS);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (initialQuery) {
+      setIsOpen(true);
+      setIsMinimized(false);
+      handleSend(initialQuery);
+    }
+  }, [initialQuery]);
 
   useEffect(() => {
     if (isOpen && !isMinimized) {

@@ -1,34 +1,58 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
-import { MapPin, Phone, Bell, FileText, Droplet, AlertTriangle } from 'lucide-react';
+import { MapPin, Phone, Bell, FileText, Droplet, AlertTriangle, X } from 'lucide-react';
 import Button from '../components/ui/Button';
 import Card from '../components/ui/Card';
 import Badge from '../components/ui/Badge';
 import MapComponent from '../components/map/MapComponent';
+import EmergencyNotification from '../components/EmergencyNotification';
+import { supabase } from '../utils/supabaseClient';
+import UpvoteButton from '../components/UpvoteButton';
+
+interface EmergencyNotificationData {
+  id: string;
+  message: string;
+  severity: 'high' | 'medium' | 'low';
+  created_at: string;
+}
+
+interface WaterIssue {
+  id: string;
+  description: string;
+  location: [number, number];
+  status: string;
+  severity: string;
+  issueType: string;
+  createdAt: string;
+  upvote_count: number;
+}
 
 const HomePage = () => {
   const { t } = useTranslation();
+  const [notifications, setNotifications] = useState<EmergencyNotificationData[]>([]);
+  const [showEmergencyBanner, setShowEmergencyBanner] = useState(true);
+  const [waterIssues, setWaterIssues] = useState<WaterIssue[]>([]);
   
   // Mock data for emergency contacts
   const emergencyContacts = [
-    { id: 1, name: 'Water Supply Department', phone: '+91-11-23456789', type: 'government' },
-    { id: 2, name: 'Plumbing Emergency Services', phone: '+91-11-98765432', type: 'service' },
-    { id: 3, name: 'Flood Control Room', phone: '+91-11-45678901', type: 'emergency' },
+    { id: 1, name: t('home.waterSupplyDepartment'), phone: '+91-11-23456789', type: 'government' },
+    { id: 2, name: t('home.plumbingServices'), phone: '+91-11-98765432', type: 'service' },
+    { id: 3, name: t('home.floodControl'), phone: '+91-11-45678901', type: 'emergency' },
   ];
   
   // Mock data for government schemes
   const govtSchemes = [
     { 
       id: 1, 
-      title: 'Jal Jeevan Mission', 
-      description: 'Providing safe and adequate drinking water through individual household tap connections by 2024.',
+      title: t('home.schemes.jalJeevanMission.title'), 
+      description: t('home.schemes.jalJeevanMission.description'),
       url: '#'
     },
     { 
       id: 2, 
-      title: 'Atal Bhujal Yojana', 
-      description: 'Sustainable groundwater management with community participation in water-stressed areas.',
+      title: t('home.schemes.atalBhujalYojana.title'), 
+      description: t('home.schemes.atalBhujalYojana.description'),
       url: '#'
     },
   ];
@@ -58,8 +82,163 @@ const HomePage = () => {
     },
   ];
   
+  useEffect(() => {
+    const fetchNotifications = async () => {
+      try {
+        // First, check if the table exists
+        const { error: tableError } = await supabase
+          .from('emergency_notifications')
+          .select('count', { count: 'exact', head: true });
+
+        if (tableError) {
+          console.error('Error checking table:', tableError);
+          // Create the table if it doesn't exist
+          await supabase.rpc('create_emergency_notifications_table');
+        }
+
+        // Fetch notifications
+        const { data, error } = await supabase
+          .from('emergency_notifications')
+          .select('*')
+          .order('created_at', { ascending: false });
+
+        if (error) {
+          console.error('Error fetching notifications:', error);
+          return;
+        }
+
+        console.log('Fetched notifications:', data);
+        if (data && data.length > 0) {
+          setNotifications(data);
+          setShowEmergencyBanner(true);
+        }
+      } catch (err) {
+        console.error('Error in fetchNotifications:', err);
+      }
+    };
+
+    fetchNotifications();
+
+    // Set up real-time subscription
+    const channel = supabase.channel('emergency_notifications_changes');
+    
+    channel
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'emergency_notifications'
+        },
+        (payload) => {
+          console.log('Received real-time update:', payload);
+          fetchNotifications();
+        }
+      )
+      .subscribe((status) => {
+        console.log('Subscription status:', status);
+      });
+
+    return () => {
+      channel.unsubscribe();
+    };
+  }, []);
+
+  useEffect(() => {
+    const fetchWaterIssues = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('water_issues')
+          .select('*')
+          .order('upvote_count', { ascending: false })
+          .order('created_at', { ascending: false });
+
+        if (error) {
+          console.error('Error fetching water issues:', error);
+          return;
+        }
+
+        setWaterIssues(data || []);
+      } catch (err) {
+        console.error('Error in fetchWaterIssues:', err);
+      }
+    };
+
+    fetchWaterIssues();
+
+    // Subscribe to changes in water_issues table
+    const channel = supabase.channel('water_issues_changes');
+    
+    channel
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'water_issues'
+        },
+        () => {
+          fetchWaterIssues();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      channel.unsubscribe();
+    };
+  }, []);
+
+  // Get high severity notification if exists
+  const highSeverityNotification = notifications.find(n => n.severity === 'high');
+
   return (
     <div className="bg-gray-50 min-h-[calc(100vh-4rem)]">
+      {/* Emergency Alert Marquee */}
+      {highSeverityNotification && showEmergencyBanner && (
+        <div className="bg-red-700 text-white overflow-hidden border-b-2 border-red-800 relative">
+          <div className="flex items-center py-3">
+            <div className="animate-marquee whitespace-nowrap flex items-center">
+              <AlertTriangle className="h-6 w-6 text-red-100 ml-4" />
+              <span className="text-lg font-bold mx-3 uppercase">{t('common.emergencyAlert')}:</span>
+              <span className="text-lg">{highSeverityNotification.message}</span>
+              <span className="mx-8">•</span>
+              <AlertTriangle className="h-6 w-6 text-red-100 ml-4" />
+              <span className="text-lg font-bold mx-3 uppercase">{t('common.emergencyAlert')}:</span>
+              <span className="text-lg">{highSeverityNotification.message}</span>
+              <span className="mx-8">•</span>
+            </div>
+            <div className="absolute animate-marquee2 whitespace-nowrap flex items-center">
+              <AlertTriangle className="h-6 w-6 text-red-100 ml-4" />
+              <span className="text-lg font-bold mx-3 uppercase">{t('common.emergencyAlert')}:</span>
+              <span className="text-lg">{highSeverityNotification.message}</span>
+              <span className="mx-8">•</span>
+              <AlertTriangle className="h-6 w-6 text-red-100 ml-4" />
+              <span className="text-lg font-bold mx-3 uppercase">{t('common.emergencyAlert')}:</span>
+              <span className="text-lg">{highSeverityNotification.message}</span>
+              <span className="mx-8">•</span>
+            </div>
+          </div>
+          <button
+            type="button"
+            className="absolute right-4 top-1/2 transform -translate-y-1/2 rounded-md p-1.5 text-red-100 hover:text-white hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-red-700 focus:ring-red-500 transition-colors duration-200"
+            onClick={() => setShowEmergencyBanner(false)}
+          >
+            <span className="sr-only">Dismiss</span>
+            <X className="h-5 w-5" />
+          </button>
+        </div>
+      )}
+
+      {/* Regular Emergency Notifications */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+        <EmergencyNotification 
+          notifications={notifications.filter(n => n.severity !== 'high')}
+          onDismiss={(id) => {
+            setNotifications(prev => prev.filter(n => n.id !== id));
+          }}
+        />
+      </div>
+
       {/* Hero Section */}
       <section className="bg-gradient-to-r from-primary-700 to-primary-900 text-white py-16 px-4 md:px-8">
         <div className="max-w-7xl mx-auto">
@@ -98,6 +277,55 @@ const HomePage = () => {
           {/* Left Column: Notices */}
           <div className="lg:col-span-2 space-y-8">
             <Card 
+              title={t('home.recentIssues')}
+              headerAction={
+                <Link to="/report" className="text-primary-600 hover:text-primary-700">
+                  <Button variant="outline" size="sm">
+                    {t('home.reportIssue')}
+                  </Button>
+                </Link>
+              }
+              className="animate-fade-in"
+            >
+              <div className="space-y-4">
+                {waterIssues.slice(0, 5).map(issue => (
+                  <div 
+                    key={issue.id}
+                    className="border-b border-gray-100 last:border-b-0 pb-4 last:pb-0"
+                  >
+                    <div className="flex justify-between items-start">
+                      <div>
+                        <h3 className="font-medium text-gray-900">
+                          {t(`report.issueTypes.${issue.issueType}`)}
+                        </h3>
+                        <p className="mt-1 text-sm text-gray-600">{issue.description}</p>
+                        <div className="mt-2 flex items-center space-x-4">
+                          <Badge 
+                            variant={
+                              issue.status === 'urgent' ? 'error' : 
+                              issue.status === 'inProgress' ? 'primary' : 
+                              issue.status === 'resolved' ? 'success' : 'warning'
+                            }
+                            size="sm"
+                          >
+                            {t(`admin.statuses.${issue.status}`)}
+                          </Badge>
+                          <span className="text-xs text-gray-500">
+                            {new Date(issue.createdAt).toLocaleDateString()}
+                          </span>
+                          <UpvoteButton 
+                            issueId={issue.id} 
+                            initialUpvotes={issue.upvote_count || 0}
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </Card>
+            
+            <Card 
               title={t('home.notices')}
               headerAction={
                 <Bell className="text-primary-600" />
@@ -124,7 +352,7 @@ const HomePage = () => {
                     </div>
                     <p className="mt-1 text-sm text-gray-600">{notice.description}</p>
                     <div className="mt-2 text-xs text-gray-500">
-                      Posted: {new Date(notice.date).toLocaleDateString()}
+                      {t('home.postedLabel')} {new Date(notice.date).toLocaleDateString()}
                     </div>
                   </div>
                 ))}
@@ -148,7 +376,7 @@ const HomePage = () => {
                         href={scheme.url}
                         className="text-sm text-primary-600 hover:text-primary-700 font-medium"
                       >
-                        Learn more &rarr;
+                        {t('common.learnMore')}
                       </a>
                     </div>
                   </div>
@@ -160,7 +388,7 @@ const HomePage = () => {
           {/* Right Column: Stats & Emergency Contacts */}
           <div className="space-y-8">
             <Card 
-              title="Water Watch Stats" 
+              title={t('home.waterWatchStats')} 
               className="bg-white animate-fade-in"
             >
               <div className="space-y-4">
@@ -169,7 +397,7 @@ const HomePage = () => {
                     <Droplet className="h-6 w-6 text-primary-600" />
                   </div>
                   <div className="ml-4">
-                    <h4 className="text-sm font-medium text-gray-500">Active Water Issues</h4>
+                    <h4 className="text-sm font-medium text-gray-500">{t('home.activeIssues')}</h4>
                     <p className="text-2xl font-semibold text-gray-900">43</p>
                   </div>
                 </div>
@@ -179,7 +407,7 @@ const HomePage = () => {
                     <MapPin className="h-6 w-6 text-success-600" />
                   </div>
                   <div className="ml-4">
-                    <h4 className="text-sm font-medium text-gray-500">Issues Resolved</h4>
+                    <h4 className="text-sm font-medium text-gray-500">{t('home.issuesResolved')}</h4>
                     <p className="text-2xl font-semibold text-gray-900">217</p>
                   </div>
                 </div>
@@ -189,7 +417,7 @@ const HomePage = () => {
                     <AlertTriangle className="h-6 w-6 text-warning-600" />
                   </div>
                   <div className="ml-4">
-                    <h4 className="text-sm font-medium text-gray-500">Urgent Issues</h4>
+                    <h4 className="text-sm font-medium text-gray-500">{t('home.urgentIssues')}</h4>
                     <p className="text-2xl font-semibold text-gray-900">8</p>
                   </div>
                 </div>
@@ -204,18 +432,22 @@ const HomePage = () => {
                 {emergencyContacts.map(contact => (
                   <div 
                     key={contact.id}
-                    className="flex items-center justify-between border-b border-gray-100 last:border-b-0 pb-4 last:pb-0"
+                    className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
                   >
-                    <div>
-                      <h3 className="font-medium text-gray-900">{contact.name}</h3>
-                      <p className="text-xs text-gray-500 capitalize">{contact.type}</p>
+                    <div className="flex items-center space-x-3">
+                      <Phone className="h-5 w-5 text-primary-600" />
+                      <div>
+                        <h4 className="font-medium text-gray-900">{contact.name}</h4>
+                        <p className="text-sm text-gray-500">
+                          {t(`home.organizationType.${contact.type}`)}
+                        </p>
+                      </div>
                     </div>
                     <a 
                       href={`tel:${contact.phone}`}
-                      className="flex items-center text-primary-600 hover:text-primary-700"
+                      className="text-primary-600 hover:text-primary-700 font-medium"
                     >
-                      <Phone size={16} className="mr-1" />
-                      <span className="text-sm font-medium">{contact.phone}</span>
+                      {contact.phone}
                     </a>
                   </div>
                 ))}
@@ -224,17 +456,17 @@ const HomePage = () => {
             
             <Card className="bg-gradient-to-br from-secondary-600 to-secondary-800 text-white animate-fade-in">
               <div className="text-center py-4">
-                <h3 className="text-xl font-semibold mb-2">Your Water Safety Score</h3>
+                <h3 className="text-xl font-semibold mb-2">{t('actionPlan.waterSafetyScore')}</h3>
                 <div className="inline-flex items-center justify-center rounded-full bg-white h-24 w-24 mb-4">
                   <span className="text-3xl font-bold text-secondary-600">87</span>
                 </div>
-                <p className="opacity-90 mb-4">Your neighborhood has good water management!</p>
+                <p className="opacity-90 mb-4">{t('actionPlan.goodManagement')}</p>
                 <Link to="/action-plan">
                   <Button 
                     variant="primary" 
                     className="bg-white text-secondary-800 hover:bg-gray-100"
                   >
-                    View Action Plan
+                    {t('actionPlan.viewPlan')}
                   </Button>
                 </Link>
               </div>

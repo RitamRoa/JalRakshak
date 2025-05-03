@@ -5,13 +5,39 @@
     "subtitle": "Empowering communities to solve water issues together",
     "reportButton": "Report Water Issue",
     "emergencyContacts": "Emergency Contacts",
+    "waterSupplyDepartment": "Water Supply Department",
+    "plumbingServices": "Plumbing Emergency Services",
+    "floodControl": "Flood Control Room",
     "govtSchemes": "Government Schemes",
-    "notices": "Notices & Announcements"
+    "notices": "Notices & Announcements",
+    "postedLabel": "Posted:",
+    "activeIssues": "Active Issues",
+    "issuesResolved": "Issues Resolved",
+    "urgentIssues": "Urgent Issues",
+    "waterWatchStats": "Water Watch Stats",
+    "organizationType": {
+      "government": "Government",
+      "service": "Service",
+      "emergency": "Emergency"
+    },
+    "schemes": {
+      "jalJeevanMission": {
+        "title": "Jal Jeevan Mission",
+        "description": "Providing safe and adequate drinking water through individual household tap connections by 2024."
+      },
+      "atalBhujalYojana": {
+        "title": "Atal Bhujal Yojana",
+        "description": "Sustainable groundwater management with community participation in water-stressed areas."
+      }
+    }
   },
   "report": {
     "title": "Report a Water Issue",
     "locationLabel": "Location",
+    "clickMapText": "Click on the map to select the location of the issue",
+    "coordinatesLabel": "Selected coordinates:",
     "issueTypeLabel": "Issue Type",
+    "selectIssueType": "Select issue type",
     "issueTypes": {
       "leak": "Water Leak",
       "flood": "Flooding",
@@ -34,30 +60,125 @@
   "map": {
     "title": "Water Issues Map",
     "layers": {
+      "title": "Map Layers",
       "issues": "Water Issues",
       "authorities": "Authorities",
       "reservoirs": "Groundwater Reservoirs",
       "weather": "Weather"
     },
+    "filters": {
+      "title": "Filters",
+      "issueType": "Issue Type",
+      "status": "Status",
+      "allTypes": "All Types",
+      "allStatuses": "All Statuses",
+      "issuesShown": "Issues Shown"
+    },
     "legend": {
+      "title": "Legend",
+      "issueTypes": "Issue Types",
       "leak": "Water Leak",
       "flood": "Flooding",
       "contamination": "Contamination",
       "shortage": "Water Shortage",
       "other": "Other Issue",
       "authority": "Authority",
-      "reservoir": "Groundwater Reservoir"
+      "reservoir": "Groundwater Reservoir",
+      "statusColors": "Status Colors",
+      "pending": "Pending",
+      "inProgress": "In Progress",
+      "resolved": "Resolved",
+      "urgent": "Urgent"
     }
   },
   "actionPlan": {
     "title": "Your Water Safety Plan",
-    "searchPlaceholder": "Search for water safety advice...",
-    "tipCategories": {
-      "emergency": "Emergency Response",
-      "conservation": "Water Conservation",
-      "quality": "Water Quality"
+    "waterSafetyScore": "Water Safety Score",
+    "goodManagement": "Water management in your area is good!",
+    "viewPlan": "View Action Plan",
+    "subtitle": "AI-generated recommendations based on water issues in your area",
+    "improveScore": "Complete recommended actions and report water issues to improve your score",
+    "personalizedAdvice": "Want personalized advice?",
+    "safetyScore": "Safety Score",
+    "yourNeighborhood": "Your neighborhood has",
+    "yourActionPlan": "Your Action Plan",
+    "aiRecommendations": "AI-generated recommendations based on your area's water issues",
+    "achievements": {
+      "title": "Your Achievements",
+      "subtitle": "Badges earned for your contributions",
+      "badgesEarned": "Badges Earned",
+      "badgesToEarn": "Badges to Earn",
+      "badges": {
+        "leakDetective": "Leak Detective",
+        "communityGuardian": "Community Guardian",
+        "waterSaver": "Water Saver",
+        "floodFighter": "Flood Fighter"
+      }
     },
-    "safetyScore": "Water Safety Score"
+    "recommendations": {
+      "leak": "Fix the reported leak in your neighborhood within 48 hours",
+      "fixtures": "Install water-efficient fixtures in your home",
+      "rainwater": "Participate in the community rainwater harvesting initiative",
+      "contamination": "Report any signs of water contamination immediately"
+    },
+    "searchPlaceholder": "Search water safety tips...",
+    "noResults": "No results found",
+    "tryDifferent": "Try different keywords or browse categories",
+    "searchResults": "Search results",
+    "tipCategories": {
+      "emergency": "Emergency",
+      "conservation": "Conservation",
+      "quality": "Quality"
+    },
+    "aiSuggestions": "Try asking our AI assistant about these topics:",
+    "suggestedQueries": {
+      "leak": "How to fix a leak",
+      "conservation": "Water conservation tips",
+      "boilWater": "Boil water advisory",
+      "flood": "Flood preparation"
+    },
+    "emergencyTips": {
+      "flooding": {
+        "title": "What to do during flooding",
+        "description": "Turn off electricity, move valuable items to higher ground, and evacuate if necessary. Avoid walking through moving water."
+      },
+      "contamination": {
+        "title": "Dealing with contaminated water",
+        "description": "Boil water for at least one minute before drinking. Use bottled water for cooking. Report to local authorities immediately."
+      },
+      "leak": {
+        "title": "Emergency pipe leak response",
+        "description": "Turn off the main water valve immediately. Use towels to contain the spread and call a plumber as soon as possible."
+      }
+    },
+    "conservationTips": {
+      "daily": {
+        "title": "Daily water conservation tips",
+        "description": "Fix leaky faucets, take shorter showers, and turn off taps when brushing teeth. Use water-efficient appliances."
+      },
+      "rainwater": {
+        "title": "Rainwater harvesting basics",
+        "description": "Install rain barrels to collect rainwater from rooftops. Use this water for gardens and non-potable purposes."
+      },
+      "garden": {
+        "title": "Reducing water usage in gardens",
+        "description": "Water plants during early morning or evening. Use drip irrigation systems and mulch to reduce evaporation."
+      }
+    },
+    "qualityTips": {
+      "reports": {
+        "title": "Understanding water quality reports",
+        "description": "Learn to read and understand the annual water quality reports provided by your local water supplier."
+      },
+      "contamination": {
+        "title": "Signs of water contamination",
+        "description": "Watch for unusual odor, color, or taste in water. Cloudy appearance or floating particles may indicate contamination."
+      },
+      "testing": {
+        "title": "Home water testing guide",
+        "description": "Use home water testing kits to check for common contaminants. Professional testing is recommended for serious concerns."
+      }
+    }
   },
   "admin": {
     "title": "Admin Dashboard",
@@ -70,7 +191,57 @@
       "inProgress": "In Progress",
       "resolved": "Resolved",
       "urgent": "Urgent"
+    },
+    "views": {
+      "map": "Map View",
+      "list": "List View",
+      "analytics": "Analytics View"
+    },
+    "filters": {
+      "title": "Filter",
+      "all": "All",
+      "urgent": "Urgent",
+      "pending": "Pending",
+      "inProgress": "In Progress",
+      "resolved": "Resolved"
+    },
+    "notification": {
+      "title": "Emergency Alert Message",
+      "placeholder": "Enter alert message to broadcast to all users in the affected area",
+      "send": "Send Emergency Alert",
+      "cancel": "Cancel"
+    },
+    "table": {
+      "issueType": "Issue Type",
+      "description": "Description",
+      "severity": "Severity",
+      "status": "Status",
+      "date": "Date",
+      "actions": "Actions",
+      "noIssues": "No issues matching your filter criteria",
+      "search": "Search reports",
+      "export": "Export"
+    },
+    "charts": {
+      "issuesByStatus": "Issues by Status",
+      "issuesByType": "Issues by Type"
     }
+  },
+  "footer": {
+    "description": "Empowering communities to solve water issues together. Report, track, and resolve water problems in your area.",
+    "quickLinks": "Quick Links",
+    "resources": "Resources",
+    "waterConservationTips": "Water Conservation Tips",
+    "govtWaterSchemes": "Government Water Schemes",
+    "waterSafetyGuidelines": "Water Safety Guidelines",
+    "emergencyResponsePlan": "Emergency Response Plan",
+    "emergencyContact": "Emergency Contact",
+    "waterEmergency": "Water Emergency",
+    "floodControl": "Flood Control",
+    "rights": "All rights reserved",
+    "privacy": "Privacy Policy",
+    "terms": "Terms of Service",
+    "cookies": "Cookie Policy"
   },
   "nav": {
     "home": "Home",
@@ -90,6 +261,45 @@
     "delete": "Delete",
     "edit": "Edit",
     "view": "View",
-    "search": "Search"
+    "search": "Search",
+    "learnMore": "Learn more →",
+    "emergencyAlert": "EMERGENCY ALERT"
+  },
+  "tags": {
+    "flood": "Flood",
+    "emergency": "Emergency",
+    "safety": "Safety",
+    "contamination": "Contamination",
+    "health": "Health",
+    "leak": "Leak",
+    "pipe": "Pipe",
+    "conservation": "Conservation",
+    "household": "Household",
+    "daily": "Daily",
+    "rainwater": "Rainwater",
+    "sustainable": "Sustainable",
+    "garden": "Garden",
+    "outdoor": "Outdoor",
+    "quality": "Quality",
+    "education": "Education",
+    "testing": "Testing",
+    "home": "Home"
+  },
+  "auth": {
+    "createAccount": "Create Account",
+    "signIn": "Sign in to your account",
+    "emailLabel": "Email address",
+    "emailPlaceholder": "Enter your email",
+    "passwordLabel": "Password",
+    "passwordPlaceholder": "Create a password",
+    "confirmPasswordLabel": "Confirm Password",
+    "confirmPasswordPlaceholder": "Confirm your password",
+    "submitButton": "Create account",
+    "submitting": "Creating account...",
+    "fillFields": "Please fill in all fields",
+    "passwordsMatch": "Passwords do not match",
+    "passwordLength": "Password must be at least 6 characters long",
+    "createError": "Failed to create account. Please try again.",
+    "checkEmail": "Please check your email to confirm your account before signing in."
   }
 }

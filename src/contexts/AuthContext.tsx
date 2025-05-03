@@ -65,27 +65,71 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   }, []);
 
   const signIn = async (email: string, password: string) => {
-    // Handle demo admin credentials
-    if (email === 'admin@example.com' && password === 'password123') {
-      const { data, error } = await supabase.auth.signInWithPassword({ 
-        email, 
-        password 
-      });
-      
-      if (error) {
-        // If Supabase auth fails, create a session manually for demo
-        setUser({ email, id: 'demo-admin', role: 'admin' } as User);
-        setSession({ user: { email, id: 'demo-admin', role: 'admin' } } as Session);
-        setIsAdmin(true);
+    try {
+      // Handle demo admin credentials
+      if (email === 'admin@example.com' && password === 'password123') {
+        const { data, error } = await supabase.auth.signInWithPassword({ 
+          email, 
+          password 
+        });
+        
+        if (error) {
+          // If Supabase auth fails, create a session manually for demo
+          const demoUser = { 
+            email, 
+            id: 'demo-admin', 
+            role: 'admin',
+            user_metadata: { role: 'admin' },
+            app_metadata: {},
+            aud: 'authenticated',
+            created_at: new Date().toISOString()
+          } as unknown as User;
+          
+          const demoSession = { 
+            user: demoUser,
+            access_token: 'demo-token',
+            refresh_token: 'demo-refresh-token'
+          } as Session;
+          
+          setUser(demoUser);
+          setSession(demoSession);
+          setIsAdmin(true);
+          return { error: null };
+        }
+        
+        // If Supabase auth succeeds, update the user with admin role
+        if (data.user) {
+          const adminUser = {
+            ...data.user,
+            user_metadata: { ...data.user.user_metadata, role: 'admin' }
+          };
+          setUser(adminUser);
+          setSession(data.session);
+          setIsAdmin(true);
+        }
+        
         return { error: null };
       }
       
+      // For non-demo users, use normal Supabase auth
+      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+      
+      if (error) {
+        return { error };
+      }
+      
+      if (data.user) {
+        setUser(data.user);
+        setSession(data.session);
+        // Check if user has admin role in metadata
+        setIsAdmin(data.user.user_metadata?.role === 'admin');
+      }
+      
       return { error: null };
+    } catch (err) {
+      console.error('Error during sign in:', err);
+      return { error: err as Error };
     }
-    
-    // For non-demo users, use normal Supabase auth
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
-    return { error };
   };
 
   const signUp = async (email: string, password: string) => {

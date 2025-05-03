@@ -91,6 +91,16 @@ const Navbar = () => {
               >
                 HI
               </button>
+              <button
+                onClick={() => changeLanguage('kn')}
+                className={`px-2 py-1 text-xs rounded-md ${
+                  i18n.language === 'kn'
+                    ? 'bg-primary-100 text-primary-800 font-medium'
+                    : 'text-gray-600 hover:bg-gray-100'
+                }`}
+              >
+                KN
+              </button>
             </div>
 
             {isAuthenticated ? (
@@ -178,6 +188,16 @@ const Navbar = () => {
                 }`}
               >
                 हिंदी
+              </button>
+              <button
+                onClick={() => changeLanguage('kn')}
+                className={`px-3 py-1 text-sm rounded-md ${
+                  i18n.language === 'kn'
+                    ? 'bg-primary-100 text-primary-800 font-medium'
+                    : 'text-gray-600 hover:bg-gray-100'
+                }`}
+              >
+                ಕನ್ನಡ
               </button>
             </div>
 

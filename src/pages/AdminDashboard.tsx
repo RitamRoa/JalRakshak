@@ -13,7 +13,9 @@ import {
   Download,
   Search,
   ArrowUpRight,
-  AlertTriangle
+  AlertTriangle,
+  X,
+  ArrowBigUp
 } from 'lucide-react';
 import { supabase } from '../utils/supabaseClient';
 import Card from '../components/ui/Card';
@@ -39,16 +41,24 @@ const AdminDashboard = () => {
   const [isUpdating, setIsUpdating] = useState(false);
   const [notificationMessage, setNotificationMessage] = useState('');
   const [showNotificationForm, setShowNotificationForm] = useState(false);
+  const [notifications, setNotifications] = useState<any[]>([]);
+  const [notificationForm, setNotificationForm] = useState({
+    message: '',
+    severity: 'high' as 'high' | 'medium' | 'low'
+  });
   
   // Filters issues based on status
   const filteredIssues = statusFilter === 'all' 
     ? waterIssues 
     : waterIssues.filter(issue => issue.status === statusFilter);
   
-  // Sort issues by priority (urgent first, then by date)
+  // Sort issues by priority and upvotes
   const sortedIssues = [...filteredIssues].sort((a, b) => {
     if (a.status === 'urgent' && b.status !== 'urgent') return -1;
     if (a.status !== 'urgent' && b.status === 'urgent') return 1;
+    if (a.upvote_count !== b.upvote_count) {
+      return (b.upvote_count || 0) - (a.upvote_count || 0);
+    }
     return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
   });
   
@@ -82,7 +92,9 @@ const AdminDashboard = () => {
   };
   
   const typeChartData = {
-    labels: Object.keys(issueTypeCounts).map(type => t(`report.issueTypes.${type}`)),
+    labels: Object.keys(issueTypeCounts).map(type => 
+      t(`report.issueTypes.${type}`)
+    ),
     datasets: [
       {
         label: 'Issues by Type',
@@ -176,6 +188,67 @@ const AdminDashboard = () => {
     }
   };
   
+  useEffect(() => {
+    fetchNotifications();
+  }, []);
+
+  const fetchNotifications = async () => {
+    const { data, error } = await supabase
+      .from('emergency_notifications')
+      .select('*')
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      console.error('Error fetching notifications:', error);
+      return;
+    }
+
+    setNotifications(data || []);
+  };
+
+  const handleCreateNotification = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      const { data, error } = await supabase
+        .from('emergency_notifications')
+        .insert([
+          {
+            message: notificationForm.message,
+            severity: notificationForm.severity,
+          }
+        ])
+        .select();
+
+      if (error) {
+        console.error('Error creating notification:', error);
+        return;
+      }
+
+      console.log('Created notification:', data);
+      setShowNotificationForm(false);
+      setNotificationForm({
+        message: '',
+        severity: 'high'
+      });
+    } catch (err) {
+      console.error('Error in handleCreateNotification:', err);
+    }
+  };
+
+  const handleDeleteNotification = async (id: string) => {
+    const { error } = await supabase
+      .from('emergency_notifications')
+      .delete()
+      .eq('id', id);
+
+    if (error) {
+      console.error('Error deleting notification:', error);
+      return;
+    }
+
+    fetchNotifications();
+  };
+  
   return (
     <div className="bg-gray-50 min-h-screen">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -199,36 +272,59 @@ const AdminDashboard = () => {
             <Button
               onClick={() => setShowNotificationForm(!showNotificationForm)}
               icon={<Bell />}
+              variant="danger"
             >
-              Send Alert
+              {t('admin.notifications')}
             </Button>
           </div>
         </div>
         
-        {/* Notification Form */}
+        {/* Emergency Notification Form */}
         {showNotificationForm && (
           <Card className="mb-6 animate-fade-in">
-            <form onSubmit={sendNotification}>
-              <div className="mb-4">
-                <label htmlFor="notification" className="block text-sm font-medium text-gray-700 mb-1">
-                  Emergency Alert Message
-                </label>
-                <textarea
-                  id="notification"
-                  rows={3}
-                  value={notificationMessage}
-                  onChange={(e) => setNotificationMessage(e.target.value)}
-                  className="shadow-sm focus:ring-primary-500 focus:border-primary-500 block w-full sm:text-sm border-gray-300 rounded-md"
-                  placeholder="Enter alert message to broadcast to all users in the affected area"
-                />
-              </div>
-              <div className="flex justify-end space-x-3">
-                <Button variant="outline" onClick={() => setShowNotificationForm(false)}>
-                  Cancel
-                </Button>
-                <Button type="submit" variant="danger" icon={<Bell />}>
-                  Send Emergency Alert
-                </Button>
+            <form onSubmit={handleCreateNotification} className="p-4">
+              <div className="space-y-4">
+                <div>
+                  <label htmlFor="message" className="block text-sm font-medium text-gray-700">
+                    {t('admin.notification.title')}
+                  </label>
+                  <textarea
+                    id="message"
+                    rows={3}
+                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500"
+                    value={notificationForm.message}
+                    onChange={(e) => setNotificationForm(prev => ({ ...prev, message: e.target.value }))}
+                    placeholder={t('admin.notification.placeholder')}
+                    required
+                  />
+                </div>
+                <div>
+                  <label htmlFor="severity" className="block text-sm font-medium text-gray-700">
+                    Severity
+                  </label>
+                  <select
+                    id="severity"
+                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500"
+                    value={notificationForm.severity}
+                    onChange={(e) => setNotificationForm(prev => ({ ...prev, severity: e.target.value as 'high' | 'medium' | 'low' }))}
+                  >
+                    <option value="high">High</option>
+                    <option value="medium">Medium</option>
+                    <option value="low">Low</option>
+                  </select>
+                </div>
+                <div className="flex justify-end space-x-3">
+                  <Button
+                    variant="outline"
+                    onClick={() => setShowNotificationForm(false)}
+                    type="button"
+                  >
+                    {t('admin.notification.cancel')}
+                  </Button>
+                  <Button variant="danger" type="submit" icon={<Bell />}>
+                    {t('admin.notification.send')}
+                  </Button>
+                </div>
               </div>
             </form>
           </Card>
@@ -246,7 +342,7 @@ const AdminDashboard = () => {
               } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm flex items-center`}
             >
               <MapPin className="mr-2 h-5 w-5" />
-              Map View
+              {t('admin.views.map')}
             </button>
             <button
               onClick={() => setView('list')}
@@ -257,7 +353,7 @@ const AdminDashboard = () => {
               } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm flex items-center`}
             >
               <List className="mr-2 h-5 w-5" />
-              List View
+              {t('admin.views.list')}
             </button>
             <button
               onClick={() => setView('analytics')}
@@ -268,7 +364,7 @@ const AdminDashboard = () => {
               } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm flex items-center`}
             >
               <BarChart2 className="mr-2 h-5 w-5" />
-              Analytics
+              {t('admin.views.analytics')}
             </button>
           </nav>
         </div>
@@ -277,42 +373,42 @@ const AdminDashboard = () => {
         <div className="mb-6 flex flex-wrap items-center gap-2">
           <span className="text-sm font-medium text-gray-700 flex items-center">
             <Filter className="mr-1 h-4 w-4" />
-            Filter:
+            {t('admin.filters.title')}:
           </span>
           <Button
             variant={statusFilter === 'all' ? 'primary' : 'outline'}
             size="sm"
             onClick={() => setStatusFilter('all')}
           >
-            All
+            {t('admin.filters.all')}
           </Button>
           <Button
             variant={statusFilter === 'urgent' ? 'primary' : 'outline'}
             size="sm"
             onClick={() => setStatusFilter('urgent')}
           >
-            Urgent
+            {t('admin.filters.urgent')}
           </Button>
           <Button
             variant={statusFilter === 'pending' ? 'primary' : 'outline'}
             size="sm"
             onClick={() => setStatusFilter('pending')}
           >
-            Pending
+            {t('admin.filters.pending')}
           </Button>
           <Button
             variant={statusFilter === 'inProgress' ? 'primary' : 'outline'}
             size="sm"
             onClick={() => setStatusFilter('inProgress')}
           >
-            In Progress
+            {t('admin.filters.inProgress')}
           </Button>
           <Button
             variant={statusFilter === 'resolved' ? 'primary' : 'outline'}
             size="sm"
             onClick={() => setStatusFilter('resolved')}
           >
-            Resolved
+            {t('admin.filters.resolved')}
           </Button>
         </div>
         
@@ -332,7 +428,7 @@ const AdminDashboard = () => {
                 <h3 className="text-lg font-medium text-gray-900">{t('admin.reports')}</h3>
                 <div className="flex space-x-2">
                   <Button variant="outline" size="sm" icon={<Download />}>
-                    Export
+                    {t('admin.table.export')}
                   </Button>
                   <div className="relative rounded-md shadow-sm">
                     <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -341,7 +437,7 @@ const AdminDashboard = () => {
                     <input
                       type="text"
                       className="focus:ring-primary-500 focus:border-primary-500 block w-full pl-10 sm:text-sm border-gray-300 rounded-md"
-                      placeholder="Search reports"
+                      placeholder={t('admin.table.search')}
                     />
                   </div>
                 </div>
@@ -349,7 +445,7 @@ const AdminDashboard = () => {
               
               {sortedIssues.length === 0 ? (
                 <div className="text-center py-12">
-                  <p className="text-gray-500">No issues matching your filter criteria</p>
+                  <p className="text-gray-500">{t('admin.table.noIssues')}</p>
                 </div>
               ) : (
                 <div className="overflow-x-auto">
@@ -357,22 +453,25 @@ const AdminDashboard = () => {
                     <thead className="bg-gray-50">
                       <tr>
                         <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Issue Type
+                          {t('admin.table.issueType')}
                         </th>
                         <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Description
+                          {t('admin.table.description')}
                         </th>
                         <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Severity
+                          {t('admin.table.severity')}
                         </th>
                         <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Status
+                          {t('admin.table.status')}
                         </th>
                         <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Date
+                          {t('admin.table.upvotes')}
                         </th>
                         <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Actions
+                          {t('admin.table.date')}
+                        </th>
+                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          {t('admin.table.actions')}
                         </th>
                       </tr>
                     </thead>
@@ -398,6 +497,14 @@ const AdminDashboard = () => {
                             <Badge variant={getStatusBadgeVariant(issue.status)}>
                               {t(`admin.statuses.${issue.status}`)}
                             </Badge>
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <div className="flex items-center space-x-1">
+                              <ArrowBigUp className="h-4 w-4 text-gray-400" />
+                              <span className="text-sm font-medium text-gray-900">
+                                {issue.upvote_count || 0}
+                              </span>
+                            </div>
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                             {new Date(issue.createdAt).toLocaleDateString()}
@@ -495,30 +602,16 @@ const AdminDashboard = () => {
             </div>
             
             {/* Charts */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <Card title="Issues by Status" className="bg-white">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <Card title={t('admin.charts.issuesByStatus')}>
                 <div className="h-64">
-                  <Pie data={statusChartData} options={{ responsive: true, maintainAspectRatio: false }} />
+                  <Pie data={statusChartData} />
                 </div>
               </Card>
               
-              <Card title="Issues by Type" className="bg-white">
+              <Card title={t('admin.charts.issuesByType')}>
                 <div className="h-64">
-                  <Bar 
-                    data={typeChartData} 
-                    options={{ 
-                      responsive: true, 
-                      maintainAspectRatio: false,
-                      scales: {
-                        y: {
-                          beginAtZero: true,
-                          ticks: {
-                            precision: 0
-                          }
-                        }
-                      }
-                    }} 
-                  />
+                  <Bar data={typeChartData} />
                 </div>
               </Card>
             </div>
@@ -670,6 +763,67 @@ const AdminDashboard = () => {
             </div>
           </div>
         )}
+
+        {/* Emergency Notifications Section */}
+        <Card className="bg-white mb-6">
+          <div className="px-4 py-5 sm:p-6">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-lg font-medium text-gray-900">Emergency Notifications</h3>
+              <Button
+                variant="primary"
+                onClick={() => setShowNotificationForm(true)}
+              >
+                Create Notification
+              </Button>
+            </div>
+
+            <div className="space-y-4">
+              {notifications.map((notification) => (
+                <div
+                  key={notification.id}
+                  className={`relative p-4 rounded-lg border ${
+                    notification.severity === 'high'
+                      ? 'bg-error-50 border-error-200'
+                      : notification.severity === 'medium'
+                      ? 'bg-warning-50 border-warning-200'
+                      : 'bg-info-50 border-info-200'
+                  }`}
+                >
+                  <div className="flex items-start justify-between">
+                    <div className="flex items-start">
+                      <div className="flex-shrink-0">
+                        <AlertTriangle className={`h-5 w-5 ${
+                          notification.severity === 'high'
+                            ? 'text-error-400'
+                            : notification.severity === 'medium'
+                            ? 'text-warning-400'
+                            : 'text-info-400'
+                        }`} />
+                      </div>
+                      <div className="ml-3">
+                        <p className="text-sm font-medium text-gray-900">{notification.message}</p>
+                        <p className="mt-1 text-sm text-gray-500">
+                          Posted: {new Date(notification.created_at).toLocaleDateString()}
+                        </p>
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      className="inline-flex rounded-md p-1.5 text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
+                      onClick={() => handleDeleteNotification(notification.id)}
+                    >
+                      <span className="sr-only">Dismiss</span>
+                      <X className="h-5 w-5" />
+                    </button>
+                  </div>
+                </div>
+              ))}
+              {notifications.length === 0 && (
+                <p className="text-center text-gray-500 py-4">No active emergency notifications</p>
+              )}
+            </div>
+          </div>
+        </Card>
       </div>
     </div>
   );

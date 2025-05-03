@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { MapContainer, TileLayer, Marker, Popup, CircleMarker, useMap, LayersControl } from 'react-leaflet';
-import { divIcon, LatLngTuple } from 'leaflet';
+import { divIcon, LatLngTuple, Icon } from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import './map.css';
 import { useMap as useMapContext } from '../../contexts/MapContext';
@@ -98,6 +98,31 @@ const createIcon = (icon: React.ReactNode, color: string) => {
   }
 };
 
+// Add custom user location icon with improved water droplet styling
+const userLocationIcon = new Icon({
+  iconUrl: 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSI+PHBhdGggZD0iTTEyIDNDMTQuNzYxNyA2LjY2NjY3IDE4IDEwLjQ5MTUgMTggMTRDMTggMTcuMzEzNyAxNS4zMTM3IDIwIDEyIDIwQzguNjg2MjkgMjAgNiAxNy4zMTM3IDYgMTRDNiAxMC40OTE1IDkuMjM4MzMgNi42NjY2NyAxMiAzWiIgZmlsbD0iIzAwN0FGRiIgc3Ryb2tlPSIjRkZGRkZGIiBzdHJva2Utd2lkdGg9IjEuNSIvPjxwYXRoIGQ9Ik0xMiA3QzEzLjUgOSAxNSAxMC41IDE1IDEyLjVDMTUgMTQuNDMzIDEzLjY1NyAxNiAxMiAxNkMxMC4zNDMgMTYgOSAxNC40MzMgOSAxMi41QzkgMTAuNSAxMC41IDkgMTIgN1oiIGZpbGw9IiNGRkZGRkYiIGZpbGwtb3BhY2l0eT0iMC41Ii8+PC9zdmc+',
+  iconSize: [36, 36],
+  iconAnchor: [18, 36],
+  popupAnchor: [0, -36],
+  className: 'drop-shadow-lg'
+});
+
+// Add UserLocationMarker component with popup
+const UserLocationMarker: React.FC<{ position: LatLngTuple | null }> = ({ position }) => {
+  return position === null ? null : (
+    <Marker position={position} icon={userLocationIcon}>
+      <Popup>
+        <div className="p-2">
+          <h3 className="font-semibold">Your Location</h3>
+          <p className="text-sm text-gray-600">
+            {position[0].toFixed(6)}, {position[1].toFixed(6)}
+          </p>
+        </div>
+      </Popup>
+    </Marker>
+  );
+};
+
 const MapComponent: React.FC = () => {
   const { t } = useTranslation();
   const { isAuthenticated } = useAuth();
@@ -112,10 +137,12 @@ const MapComponent: React.FC = () => {
     center,
     zoom,
     isLoading,
-    error
+    error,
+    setCenter
   } = useMapContext();
 
   const [isMapReady, setIsMapReady] = useState(false);
+  const [userLocation, setUserLocation] = useState<LatLngTuple | null>(null);
 
   // Validate coordinates
   const validateCoordinates = (coords: any): coords is LatLngTuple => {
@@ -144,6 +171,36 @@ const MapComponent: React.FC = () => {
       return DEFAULT_ZOOM;
     }
   };
+
+  // Get user's location and update map center
+  useEffect(() => {
+    if (navigator.geolocation) {
+      const getPosition = () => new Promise<GeolocationPosition>((resolve, reject) => {
+        navigator.geolocation.getCurrentPosition(resolve, reject, {
+          enableHighAccuracy: true,
+          timeout: 5000,
+          maximumAge: 0
+        });
+      });
+
+      Promise.race([
+        getPosition(),
+        new Promise((_, reject) => setTimeout(() => reject(new Error('Geolocation timeout')), 5000))
+      ])
+        .then((result) => {
+          const position = result as GeolocationPosition;
+          const lat = position.coords.latitude;
+          const lng = position.coords.longitude;
+          const userPos: LatLngTuple = [lat, lng];
+          setUserLocation(userPos);
+          // Update map center to user's location
+          setCenter(userPos);
+        })
+        .catch((geoError) => {
+          console.warn('Geolocation error:', geoError);
+        });
+    }
+  }, []);
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -189,6 +246,8 @@ const MapComponent: React.FC = () => {
             url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
             attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
           />
+
+          <UserLocationMarker position={userLocation} />
 
           <LayersControl position="topright">
             <LayersControl.Overlay checked={visibleLayers.issues} name={t('map.layers.issues')}>

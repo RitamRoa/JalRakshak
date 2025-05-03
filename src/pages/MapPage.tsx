@@ -78,7 +78,7 @@ const MapPage = () => {
               <div className="flex items-center justify-between mb-3">
                 <h3 className="font-medium text-gray-900 flex items-center">
                   <Layers size={18} className="mr-2" />
-                  Map Layers
+                  {t('map.layers.title')}
                 </h3>
               </div>
               
@@ -107,46 +107,46 @@ const MapPage = () => {
               <div className="flex items-center justify-between mb-3">
                 <h3 className="font-medium text-gray-900 flex items-center">
                   <Filter size={18} className="mr-2" />
-                  Filters
+                  {t('map.filters.title')}
                 </h3>
               </div>
               
               <div className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Issue Type</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">{t('map.filters.issueType')}</label>
                   <select
                     value={filterType || ''}
                     onChange={(e) => setFilterType(e.target.value || null)}
                     className="block w-full pl-3 pr-10 py-2 text-sm border-gray-300 focus:ring-primary-500 focus:border-primary-500 rounded-md"
                   >
-                    <option value="">All Types</option>
-                    <option value="leak">Water Leak</option>
-                    <option value="flood">Flooding</option>
-                    <option value="contamination">Contamination</option>
-                    <option value="shortage">Water Shortage</option>
-                    <option value="other">Other Issue</option>
+                    <option value="">{t('map.filters.allTypes')}</option>
+                    {Object.keys(t('report.issueTypes', { returnObjects: true })).map((type) => (
+                      <option key={type} value={type}>
+                        {t(`report.issueTypes.${type}`)}
+                      </option>
+                    ))}
                   </select>
                 </div>
                 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">{t('map.filters.status')}</label>
                   <select
                     value={filterStatus || ''}
                     onChange={(e) => setFilterStatus(e.target.value || null)}
                     className="block w-full pl-3 pr-10 py-2 text-sm border-gray-300 focus:ring-primary-500 focus:border-primary-500 rounded-md"
                   >
-                    <option value="">All Statuses</option>
-                    <option value="pending">Pending</option>
-                    <option value="inProgress">In Progress</option>
-                    <option value="resolved">Resolved</option>
-                    <option value="urgent">Urgent</option>
+                    <option value="">{t('map.filters.allStatuses')}</option>
+                    <option value="pending">{t('map.legend.pending')}</option>
+                    <option value="inProgress">{t('map.legend.inProgress')}</option>
+                    <option value="resolved">{t('map.legend.resolved')}</option>
+                    <option value="urgent">{t('map.legend.urgent')}</option>
                   </select>
                 </div>
               </div>
               
               <div className="mt-4 pt-3 border-t border-gray-200">
                 <div className="flex items-center justify-between text-sm">
-                  <span className="text-gray-500">Issues shown:</span>
+                  <span className="text-gray-500">{t('map.filters.issuesShown')}</span>
                   <span className="font-medium">{filteredIssues.length}</span>
                 </div>
               </div>
@@ -156,11 +156,11 @@ const MapPage = () => {
           {/* Legend */}
           <Card className="bg-white bg-opacity-95">
             <div>
-              <h3 className="font-medium text-gray-900 mb-3">Legend</h3>
+              <h3 className="font-medium text-gray-900 mb-3">{t('map.legend.title')}</h3>
               
               <div className="space-y-3">
                 <div className="space-y-1">
-                  <p className="text-xs font-medium text-gray-700">Issue Types</p>
+                  <p className="text-xs font-medium text-gray-700">{t('map.legend.issueTypes')}</p>
                   <div className="grid grid-cols-2 gap-2">
                     <div className="flex items-center text-xs text-gray-600">
                       <span className="mr-1.5">{getIssueTypeIcon('leak')}</span>
@@ -182,23 +182,23 @@ const MapPage = () => {
                 </div>
                 
                 <div className="space-y-1">
-                  <p className="text-xs font-medium text-gray-700">Status Colors</p>
+                  <p className="text-xs font-medium text-gray-700">{t('map.legend.statusColors')}</p>
                   <div className="grid grid-cols-2 gap-2">
                     <div className="flex items-center text-xs text-gray-600">
                       <span className={`w-3 h-3 rounded-full ${getStatusColor('pending')} mr-1.5`}></span>
-                      <span>Pending</span>
+                      <span>{t('map.legend.pending')}</span>
                     </div>
                     <div className="flex items-center text-xs text-gray-600">
                       <span className={`w-3 h-3 rounded-full ${getStatusColor('inProgress')} mr-1.5`}></span>
-                      <span>In Progress</span>
+                      <span>{t('map.legend.inProgress')}</span>
                     </div>
                     <div className="flex items-center text-xs text-gray-600">
                       <span className={`w-3 h-3 rounded-full ${getStatusColor('resolved')} mr-1.5`}></span>
-                      <span>Resolved</span>
+                      <span>{t('map.legend.resolved')}</span>
                     </div>
                     <div className="flex items-center text-xs text-gray-600">
                       <span className={`w-3 h-3 rounded-full ${getStatusColor('urgent')} mr-1.5`}></span>
-                      <span>Urgent</span>
+                      <span>{t('map.legend.urgent')}</span>
                     </div>
                   </div>
                 </div>

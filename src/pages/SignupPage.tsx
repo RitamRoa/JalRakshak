@@ -21,17 +21,17 @@ const SignupPage = () => {
     e.preventDefault();
     
     if (!email || !password || !confirmPassword) {
-      setError('Please fill in all fields');
+      setError(t('auth.fillFields'));
       return;
     }
     
     if (password !== confirmPassword) {
-      setError('Passwords do not match');
+      setError(t('auth.passwordsMatch'));
       return;
     }
     
     if (password.length < 6) {
-      setError('Password must be at least 6 characters long');
+      setError(t('auth.passwordLength'));
       return;
     }
     
@@ -48,13 +48,13 @@ const SignupPage = () => {
       // Show success message and redirect
       navigate('/admin/login', { 
         state: { 
-          message: 'Please check your email to confirm your account before signing in.' 
+          message: t('auth.checkEmail')
         }
       });
       
     } catch (err: any) {
       console.error('Signup error:', err);
-      setError(err.message || 'Failed to create account. Please try again.');
+      setError(err.message || t('auth.createError'));
     } finally {
       setIsSubmitting(false);
     }
@@ -73,9 +73,9 @@ const SignupPage = () => {
             {t('auth.createAccount')}
           </h2>
           <p className="mt-2 text-sm text-gray-600">
-            Or{' '}
+            {t('auth.signIn')}{' '}
             <Link to="/admin/login" className="font-medium text-primary-600 hover:text-primary-500">
-              sign in to your account
+              {t('auth.signIn')}
             </Link>
           </p>
         </div>
@@ -91,7 +91,7 @@ const SignupPage = () => {
             
             <div>
               <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
-                Email address
+                {t('auth.emailLabel')}
               </label>
               <input
                 id="email"
@@ -102,13 +102,13 @@ const SignupPage = () => {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
-                placeholder="Enter your email"
+                placeholder={t('auth.emailPlaceholder')}
               />
             </div>
             
             <div>
               <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
-                Password
+                {t('auth.passwordLabel')}
               </label>
               <input
                 id="password"
@@ -119,13 +119,13 @@ const SignupPage = () => {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
-                placeholder="Create a password"
+                placeholder={t('auth.passwordPlaceholder')}
               />
             </div>
             
             <div>
               <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 mb-1">
-                Confirm Password
+                {t('auth.confirmPasswordLabel')}
               </label>
               <input
                 id="confirmPassword"
@@ -136,7 +136,7 @@ const SignupPage = () => {
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
-                placeholder="Confirm your password"
+                placeholder={t('auth.confirmPasswordPlaceholder')}
               />
             </div>
             
@@ -146,7 +146,7 @@ const SignupPage = () => {
                 fullWidth
                 disabled={isSubmitting}
               >
-                {isSubmitting ? 'Creating account...' : 'Create account'}
+                {isSubmitting ? t('auth.submitting') : t('auth.submitButton')}
               </Button>
             </div>
           </form>

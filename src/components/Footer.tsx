@@ -15,7 +15,7 @@ const Footer = () => {
               <span className="ml-2 text-xl font-display font-bold">{t('appName')}</span>
             </div>
             <p className="text-gray-300 text-sm">
-              Empowering communities to solve water issues together. Report, track, and resolve water problems in your area.
+              {t('footer.description')}
             </p>
             <div className="flex space-x-4">
               <a href="#" className="text-gray-400 hover:text-white transition">
@@ -34,7 +34,7 @@ const Footer = () => {
           </div>
           
           <div>
-            <h3 className="text-lg font-semibold mb-4">Quick Links</h3>
+            <h3 className="text-lg font-semibold mb-4">{t('footer.quickLinks')}</h3>
             <ul className="space-y-2">
               <li>
                 <Link to="/" className="text-gray-300 hover:text-white transition">
@@ -60,41 +60,41 @@ const Footer = () => {
           </div>
           
           <div>
-            <h3 className="text-lg font-semibold mb-4">Resources</h3>
+            <h3 className="text-lg font-semibold mb-4">{t('footer.resources')}</h3>
             <ul className="space-y-2">
               <li>
                 <a href="#" className="text-gray-300 hover:text-white transition">
-                  Water Conservation Tips
+                  {t('footer.waterConservationTips')}
                 </a>
               </li>
               <li>
                 <a href="#" className="text-gray-300 hover:text-white transition">
-                  Government Water Schemes
+                  {t('footer.govtWaterSchemes')}
                 </a>
               </li>
               <li>
                 <a href="#" className="text-gray-300 hover:text-white transition">
-                  Water Safety Guidelines
+                  {t('footer.waterSafetyGuidelines')}
                 </a>
               </li>
               <li>
                 <a href="#" className="text-gray-300 hover:text-white transition">
-                  Emergency Response Plan
+                  {t('footer.emergencyResponsePlan')}
                 </a>
               </li>
             </ul>
           </div>
           
           <div>
-            <h3 className="text-lg font-semibold mb-4">Emergency Contact</h3>
+            <h3 className="text-lg font-semibold mb-4">{t('footer.emergencyContact')}</h3>
             <ul className="space-y-2">
               <li className="flex items-center">
                 <Phone size={16} className="mr-2 text-primary-400" />
-                <span>Water Emergency: +91-11-12345678</span>
+                <span>{t('footer.waterEmergency')}: +91-11-12345678</span>
               </li>
               <li className="flex items-center">
                 <Phone size={16} className="mr-2 text-primary-400" />
-                <span>Flood Control: +91-11-87654321</span>
+                <span>{t('footer.floodControl')}: +91-11-87654321</span>
               </li>
               <li className="flex items-center">
                 <Mail size={16} className="mr-2 text-primary-400" />
@@ -106,17 +106,17 @@ const Footer = () => {
         
         <div className="border-t border-gray-800 mt-8 pt-8 flex flex-col md:flex-row justify-between items-center">
           <p className="text-sm text-gray-400">
-            © {new Date().getFullYear()} Community Water Watch. All rights reserved.
+            © {new Date().getFullYear()} {t('appName')}. {t('footer.rights')}
           </p>
           <div className="flex space-x-6 mt-4 md:mt-0">
             <a href="#" className="text-sm text-gray-400 hover:text-white transition">
-              Privacy Policy
+              {t('footer.privacy')}
             </a>
             <a href="#" className="text-sm text-gray-400 hover:text-white transition">
-              Terms of Service
+              {t('footer.terms')}
             </a>
             <a href="#" className="text-sm text-gray-400 hover:text-white transition">
-              Cookie Policy
+              {t('footer.cookies')}
             </a>
           </div>
         </div>

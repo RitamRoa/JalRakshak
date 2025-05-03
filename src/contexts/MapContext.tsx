@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { LatLngTuple } from 'leaflet';
-import { supabase } from '../utils/supabaseClient';
+import { supabase, checkSupabaseConnection } from '../utils/supabaseClient';
 import { weatherApi } from '../utils/apiClients';
 import { useAuth } from './AuthContext';
 
@@ -142,6 +142,133 @@ export const MapProvider: React.FC<MapProviderProps> = ({ children }) => {
     setZoom(Math.round(newZoom));
   }, []);
 
+  const fetchMapData = useCallback(async () => {
+    if (!validateCoordinates(center)) {
+      console.error('Invalid coordinates for fetching data:', center);
+      return;
+    }
+
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      // First check if we can connect to Supabase
+      const { isConfigured, error: connectionError } = await checkSupabaseConnection();
+      
+      if (!isConfigured) {
+        console.error('Supabase connection failed:', connectionError);
+        setError('Unable to connect to the database. Please try again later.');
+        return;
+      }
+
+      // Fetch water issues from Supabase
+      const { data: issuesData, error: issuesError } = await supabase
+        .from('water_issues')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (issuesError) {
+        console.error('Error fetching water issues:', issuesError);
+        setError('Unable to fetch water issues. Please try again later.');
+        return;
+      }
+
+      // Handle empty data case
+      if (!issuesData || issuesData.length === 0) {
+        console.log('No water issues found');
+        setWaterIssues([]);
+      } else {
+        // Transform the data to ensure proper location format
+        const transformedIssues = issuesData.map(issue => {
+          let location: LatLngTuple;
+          try {
+            if (typeof issue.location === 'string') {
+              const [lng, lat] = issue.location
+                .slice(1, -1)
+                .split(',')
+                .map(Number);
+              location = [lat, lng];
+            } else if (Array.isArray(issue.location)) {
+              location = [issue.location[1], issue.location[0]];
+            } else {
+              console.warn('Invalid location format for issue:', issue.id);
+              location = [center[0], center[1]];
+            }
+
+            if (!validateCoordinates(location)) {
+              console.warn('Invalid coordinates after transformation:', location);
+              location = [center[0], center[1]];
+            }
+          } catch (err) {
+            console.error('Error parsing location for issue:', issue.id, err);
+            location = [center[0], center[1]];
+          }
+
+          return {
+            ...issue,
+            location,
+            has_upvoted: false,
+            issueType: (issue.issue_type || issue.issueType || 'other').toLowerCase() as WaterIssue['issueType']
+          };
+        });
+
+        // If user is authenticated, fetch their upvotes
+        if (user) {
+          try {
+            const { data: upvotes, error: upvotesError } = await supabase
+              .from('issue_upvotes')
+              .select('issue_id')
+              .eq('user_id', user.id);
+
+            if (!upvotesError && upvotes) {
+              const userUpvotes = new Set(upvotes.map(u => u.issue_id));
+              transformedIssues.forEach(issue => {
+                issue.has_upvoted = userUpvotes.has(issue.id);
+              });
+            }
+          } catch (upvoteErr) {
+            console.error('Error fetching upvotes:', upvoteErr);
+          }
+        }
+
+        setWaterIssues(transformedIssues);
+      }
+
+      // Mock data for other entities
+      setAuthorities([{
+        id: '1',
+        name: 'Water Supply Department',
+        location: [center[0] + 0.002, center[1] + 0.002],
+        type: 'government',
+        phone: '+91-11-12345678',
+      }]);
+      
+      setReservoirs([{
+        id: '1',
+        name: 'Central Reservoir',
+        location: [center[0] + 0.003, center[1] + 0.003],
+        capacity: 10000,
+        currentLevel: 8500,
+      }]);
+
+      setWeather({
+        location: center,
+        temperature: 25,
+        condition: 'Clear',
+        humidity: 65,
+        rainfall: 0,
+        alerts: [],
+        updatedAt: new Date().toISOString(),
+      });
+      
+    } catch (err: any) {
+      console.error('Error in fetchMapData:', err);
+      setError('Unable to load map data. Please try again later.');
+    } finally {
+      setIsLoading(false);
+    }
+  }, [center, user, validateCoordinates]);
+
   // Initialize map data and handle geolocation
   useEffect(() => {
     let isMounted = true;
@@ -149,9 +276,6 @@ export const MapProvider: React.FC<MapProviderProps> = ({ children }) => {
     const initializeMap = async () => {
       if (!isMounted) return;
       
-      setIsLoading(true);
-      setError(null);
-
       try {
         // Try geolocation first
         if (navigator.geolocation) {
@@ -188,18 +312,11 @@ export const MapProvider: React.FC<MapProviderProps> = ({ children }) => {
             setCenterSafe(DEFAULT_CENTER);
           }
         }
-
-        // Fetch map data
-        await fetchMapData();
       } catch (err: any) {
         console.error('Error initializing map:', err);
         if (isMounted) {
           setError(err.message);
           setCenterSafe(DEFAULT_CENTER);
-        }
-      } finally {
-        if (isMounted) {
-          setIsLoading(false);
         }
       }
     };
@@ -209,83 +326,12 @@ export const MapProvider: React.FC<MapProviderProps> = ({ children }) => {
     return () => {
       isMounted = false;
     };
-  }, []); // Only run on mount
+  }, [setCenterSafe]);
 
-  const fetchMapData = async () => {
-    if (!validateCoordinates(center)) {
-      console.error('Invalid coordinates for fetching data:', center);
-      return;
-    }
-
-    try {
-      // Fetch water issues from Supabase
-      const { data: issuesData, error: issuesError } = await supabase
-        .from('water_issues')
-        .select('*');
-      
-      if (issuesError) throw issuesError;
-
-      // Mock data for testing
-      const mockIssues: WaterIssue[] = [
-        {
-          id: '1',
-          location: [center[0] + 0.001, center[1] + 0.001],
-          issueType: 'leak',
-          description: 'Water pipe leaking on main street',
-          severity: 'medium',
-          status: 'pending',
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
-          userId: '123',
-          upvote_count: 0,
-        },
-        // ... other mock issues
-      ];
-
-      setWaterIssues(issuesData?.length ? issuesData : mockIssues);
-      
-      // Mock data for other entities
-      const mockAuthorities: Authority[] = [
-        {
-          id: '1',
-          name: 'Water Supply Department',
-          location: [center[0] + 0.002, center[1] + 0.002],
-          type: 'government',
-          phone: '+91-11-12345678',
-        },
-      ];
-      
-      const mockReservoirs: Reservoir[] = [
-        {
-          id: '1',
-          name: 'Central Reservoir',
-          location: [center[0] + 0.003, center[1] + 0.003],
-          capacity: 10000,
-          currentLevel: 8500,
-        },
-      ];
-      
-      setAuthorities(mockAuthorities);
-      setReservoirs(mockReservoirs);
-
-      // Mock weather data
-      const mockWeather: WeatherData = {
-        location: center,
-        temperature: 25,
-        condition: 'Clear',
-        humidity: 65,
-        rainfall: 0,
-        alerts: [],
-        updatedAt: new Date().toISOString(),
-      };
-      
-      setWeather(mockWeather);
-      
-    } catch (err: any) {
-      console.error('Error fetching map data:', err);
-      setError(err.message);
-    }
-  };
+  // Fetch data whenever center changes or user auth state changes
+  useEffect(() => {
+    fetchMapData();
+  }, [fetchMapData, user]);
 
   const toggleLayer = useCallback((layer: string, visible: boolean) => {
     setVisibleLayers(prev => ({
@@ -293,48 +339,6 @@ export const MapProvider: React.FC<MapProviderProps> = ({ children }) => {
       [layer]: visible,
     }));
   }, []);
-
-  // Fetch water issues and user's upvotes
-  const fetchWaterIssues = useCallback(async () => {
-    try {
-      setIsLoading(true);
-      setError(null);
-
-      // Fetch water issues
-      const { data: issues, error: issuesError } = await supabase
-        .from('water_issues')
-        .select('*')
-        .order('created_at', { ascending: false });
-
-      if (issuesError) throw issuesError;
-
-      // If user is authenticated, fetch their upvotes
-      let userUpvotes: string[] = [];
-      if (user) {
-        const { data: upvotes, error: upvotesError } = await supabase
-          .from('issue_upvotes')
-          .select('issue_id')
-          .eq('user_id', user.id);
-
-        if (upvotesError) throw upvotesError;
-        userUpvotes = upvotes.map(u => u.issue_id);
-      }
-
-      // Transform the data
-      const transformedIssues = issues.map(issue => ({
-        ...issue,
-        location: issue.location.slice(1, -1).split(',').map(Number).reverse() as LatLngTuple,
-        has_upvoted: userUpvotes.includes(issue.id)
-      }));
-
-      setWaterIssues(transformedIssues);
-    } catch (err) {
-      console.error('Error fetching water issues:', err);
-      setError('Failed to fetch water issues');
-    } finally {
-      setIsLoading(false);
-    }
-  }, [user]);
 
   // Toggle upvote for an issue
   const toggleUpvote = async (issueId: string) => {
@@ -368,17 +372,13 @@ export const MapProvider: React.FC<MapProviderProps> = ({ children }) => {
         if (error) throw error;
       }
 
-      // Refresh water issues to get updated counts
-      await fetchWaterIssues();
+      // Refresh water issues
+      await fetchMapData();
     } catch (err) {
       console.error('Error toggling upvote:', err);
       setError('Failed to update upvote');
     }
   };
-
-  useEffect(() => {
-    fetchWaterIssues();
-  }, [fetchWaterIssues]);
 
   const value: MapContextProps = {
     waterIssues,
